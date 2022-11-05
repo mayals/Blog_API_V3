@@ -1,2 +1,2 @@
-# Blog-API-avanced
+# Blog-API-advanced
 django application for Blog API 

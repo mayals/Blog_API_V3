@@ -23,9 +23,9 @@ from rest_framework.routers import DefaultRouter
 
 
 
-
-# app_name = 'api'
 router = DefaultRouter()
+
+app_name = 'api'
 router.register('category',views.Categoryviewset,basename="category")
 router.register('post',views.Postviewset,basename="post")
 router.register('comment',views.Commentviewset,basename="comment")

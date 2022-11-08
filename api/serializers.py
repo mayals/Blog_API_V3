@@ -41,7 +41,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         return value
 
 
-
+    # work ok all :) to make "name" not allowed for update
     # https://www.appsloveworld.com/django/100/14/how-to-make-a-field-editable-on-create-and-read-only-on-update-in-django-rest-fra
     def update(self, instance, validated_data):
         validated_data.pop('name')                         # validated_data no longer has name     
@@ -94,8 +94,9 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
                                                     requiredValidator,#not work!
                                                     UniqueValidator(queryset=Post.objects.all())
                                            ])
-    body          = serializers.CharField(required=True) 
     author        = serializers.CharField(required=True)
+    body          = serializers.CharField(required=True,style={'base_template': 'textarea.html'} )
+    
     
     
     url   = serializers.HyperlinkedIdentityField(read_only=True,view_name='post-detail',lookup_field='slug')  
@@ -113,18 +114,13 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
-
-    def required(self,data):
-        if data is None:
-            raise serializers.ValidationError('This field is required')
-        return data
         
     post          = serializers.SlugRelatedField(
                             queryset = Post.objects.all(),
                             slug_field = 'title'  # to display category_id asredable  use name field  insead of id field 
                             ) 
     
-    text          = serializers.CharField(required=True) 
+    text          = serializers.CharField(required=True,style={'base_template': 'textarea.html'} ) 
     comment_by    = serializers.CharField(required=True)
     allowed       = serializers.BooleanField(default=False)
     

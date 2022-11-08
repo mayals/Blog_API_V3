@@ -5,8 +5,8 @@ from django.utils.text import slugify
 # https://docs.djangoproject.com/en/3.2/ref/models/#models
 
 class Category(models.Model):
-    name        = models.CharField(max_length=100,unique=True,null=True,blank=False)
-    slug        = models.SlugField(max_length=120, blank=True, null=True)
+    name        = models.CharField(max_length=20,unique=True,null=True,blank=False)
+    slug        = models.SlugField(max_length=25, blank=True, null=True)
     description = models.TextField(null =True,blank=True)
     date_add    = models.DateTimeField(auto_now=False, auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True,  auto_now_add=False)
@@ -37,8 +37,8 @@ class Category(models.Model):
 
 class Post(models.Model):
     category    = models.ForeignKey(Category,on_delete=models.CASCADE,null=True,blank=False,related_name="posts_category")
-    title       = models.CharField(max_length=100,null=True,blank=False)
-    slug        = models.SlugField(max_length=120, blank=True, null=True)
+    title       = models.CharField(max_length=20,null=True,blank=False)
+    slug        = models.SlugField(max_length=25, blank=True, null=True)
     body        = models.TextField(null=True,blank=False)
     author      = models.CharField(max_length=100,null=True,blank=False)
     date_add    = models.DateTimeField(auto_now=False, auto_now_add=True)

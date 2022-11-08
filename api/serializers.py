@@ -1,34 +1,30 @@
-from rest_framework import serializers,response
+from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from.models import Category,Post,Comment
-
-
+from . my_validators import requiredValidator,checkTitleValidator,maxLengthValidator
+from rest_framework import status
 
 # https://www.django-rest-framework.org/tutorial/5-relationships-and-hyperlinked-apis/#hyperlinking-our-api
 # https://www.django-rest-framework.org/api-guide/validators/#uniquevalidator
 # https://www.django-rest-framework.org/api-guide/relations/
 
 
+# not work ..no chage has done in message!
 
-def required(value):
-        if value is None:
-             raise serializers.ValidationError('This field is required')
-        return value
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
     name = serializers.CharField(validators=[
-                                            required,
+                                            maxLengthValidator,
+                                            requiredValidator,# this notwork!
                                             UniqueValidator(queryset=Category.objects.all(),message='يجب أن يكون أسم التصنيف غير مكرر')
                                             ])
     description    = serializers.CharField(required=False) 
-    
-
     #url - mean -> category detail and use HyperlinkedIdentityField
     url = serializers.HyperlinkedIdentityField(read_only=True,view_name='category-detail',lookup_field='slug')   # view_name='{model_name}-detail'
-    posts_category  = serializers.HyperlinkedRelatedField(read_only=True,view_name='post-detail',many=True)
+    posts_category  = serializers.HyperlinkedRelatedField(read_only=True,view_name='post-detail',many=True,lookup_field='slug')
     
 
-
+    # not work ..no chage has done in message!
     # https://stackoverflow.com/questions/30565389/django-rest-framework-how-to-create-custom-error-messages-for-all-modelseriali
     def __init__(self, *args, **kwargs):
         super(CategorySerializer, self).__init__(*args, **kwargs)
@@ -37,19 +33,20 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         self.fields['name'].error_messages['read_only'] = 'NO EDIT ALOWED'
     
     
-    
+    # not work ..no chage has done in message!
     # https://www.django-rest-framework.org/api-guide/serializers/#field-level-validation
     def validate_name(self,value):
         if value is None:
-            raise serializers.ValidationError("This field is required")
+            raise serializers.ValidationError("This field is required",status.HTTP_400_BAD_REQUEST)
         return value
 
 
 
     # https://www.appsloveworld.com/django/100/14/how-to-make-a-field-editable-on-create-and-read-only-on-update-in-django-rest-fra
     def update(self, instance, validated_data):
-        validated_data.pop('name')                            # validated_data no longer has name     
-        return super().update(instance, validated_data)
+        validated_data.pop('name')                         # validated_data no longer has name     
+        super().update(instance, validated_data)
+        raise serializers.ValidationError("This field not allowed to update",status.HTTP_400_BAD_REQUEST) 
          
 
 
@@ -59,9 +56,8 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         read_only_fields = ('name',)
         extra_kwargs = {
                         "name": {
-                            "error_messages": {
-                                "required": "Please This field is required"
-                            }
+                             "error_messages": { "required": "Please This field is required" },
+                             "max_length": 20  
                         }
                     }
 
@@ -88,16 +84,14 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
 
-    def required(self,data):
-        if data is None:
-            raise serializers.ValidationError('This field is required')
-        return data
-
     category      = serializers.SlugRelatedField(
                             queryset = Category.objects.all(),
                             slug_field = 'name'  # to display category_id asredable  use name field  insead of id field 
                             ) 
     title         = serializers.CharField(required=True, validators=[
+                                                    maxLengthValidator,
+                                                    # checkTitleValidator, # work ok
+                                                    requiredValidator,#not work!
                                                     UniqueValidator(queryset=Post.objects.all())
                                            ])
     body          = serializers.CharField(required=True) 

@@ -34,8 +34,9 @@ router.register('comment',views.Commentviewset,basename="comment")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('/', include('api.urls')),
-    path('api-auth/', include('rest_framework.urls')),
+   
+    # path('api-auth/', include('rest_framework.urls')),
+    
     # https://www.django-rest-framework.org/tutorial/6-viewsets-and-routers/#using-routers
     path('api/', include(router.urls)),
 

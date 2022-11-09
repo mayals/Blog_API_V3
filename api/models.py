@@ -3,8 +3,36 @@ from django.urls import reverse
 from django.utils.text import slugify
 import uuid
 
-
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 # https://docs.djangoproject.com/en/3.2/ref/models/#models
+
+
+
+# https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
+""" # https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#substituting-a-custom-user-model"""
+class UserModel(AbstractUser):
+   username        = models.CharField(max_length = 50, null = True, unique = True)
+   email           = models.EmailField(unique = True, null = True)
+   first_name      = models.CharField(max_length = 10, null = True)
+   last_name       = models.CharField(max_length = 10 ,null = True)
+   born_date       = models.DateTimeField(null = True)
+   USERNAME_FIELD  = 'username'
+   REQUIRED_FIELDS = ['email']
+   
+   def __str__(self):
+       return "{}".format(self.username) 
+   
+
+   class Meta:
+        ordering = ('first_name',)
+        verbose_name = 'UserModel'
+        verbose_name_plural = 'UsersModel'
+
+
+
+
+
 
 class Category(models.Model):
     id          = models.UUIDField(primary_key=True, editable=False,default=uuid.uuid4)

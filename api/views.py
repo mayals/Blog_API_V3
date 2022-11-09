@@ -1,10 +1,17 @@
 from django.shortcuts import render
-from.models import Category,Post,Comment
-from.serializers import CategorySerializer,PostSerializer,CommentSerializer
+from.models import Category,Post,Comment,UserModel
+from.serializers import CategorySerializer,PostSerializer,CommentSerializer,UserModelSerializer
 from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
+
+
+class UserModelviewset(viewsets.ModelViewSet):
+    queryset = UserModel.objects.all()
+    serializer_class = UserModelSerializer
+
+
 
 class Categoryviewset(viewsets.ModelViewSet):
     queryset = Category.objects.all()

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from.models import Category,Post,Comment
+from.models import Category,Post,Comment,UserModel
 from . my_validators import requiredValidator,checkTitleValidator,maxLengthValidator
 from rest_framework import status
 
@@ -10,6 +10,19 @@ from rest_framework import status
 
 
 # not work ..no chage has done in message!
+
+
+
+
+class UserModelSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model  = UserModel 
+        fields = [
+            'username','email','is_staff','is_active','is_superuser','date_joined',
+            'first_name','last_name','gender','born_date','country','avatar','bio','website',
+            ]
+
+
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):

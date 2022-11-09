@@ -2,32 +2,86 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 import uuid
-
-from django.contrib.auth.models import AbstractUser
+from django.core.mail import send_mail
+from .UserModelManger import UserModelManger 
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
 from django.conf import settings
 # https://docs.djangoproject.com/en/3.2/ref/models/#models
 
-
-
-# https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
+#  https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
+#  https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#a-full-example
+#  https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
 """ # https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#substituting-a-custom-user-model"""
-class UserModel(AbstractUser):
-   username        = models.CharField(max_length = 50, null = True, unique = True)
-   email           = models.EmailField(unique = True, null = True)
-   first_name      = models.CharField(max_length = 10, null = True)
-   last_name       = models.CharField(max_length = 10 ,null = True)
-   born_date       = models.DateTimeField(null = True)
-   USERNAME_FIELD  = 'username'
-   REQUIRED_FIELDS = ['email']
-   
-   def __str__(self):
-       return "{}".format(self.username) 
-   
 
-   class Meta:
-        ordering = ('first_name',)
-        verbose_name = 'UserModel'
-        verbose_name_plural = 'UsersModel'
+
+# https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#a-full-example
+
+ 
+class UserModel(AbstractBaseUser,PermissionsMixin):
+    
+    M = 'Male'
+    F = 'Female'
+    GENDER_CHOICES=[
+                    (M,'Male'),
+                    (F,'Female'),
+    ]       
+    # default user fields:
+    username        = models.CharField(max_length = 50, null = True, unique = True)
+    email           = models.EmailField(unique = True, null = True)
+    is_staff        = models.BooleanField(default=False)
+    is_active       = models.BooleanField(default=True)
+    is_superuser    = models.BooleanField(default=False)
+    date_joined     = models.DateTimeField( auto_now_add=True)
+    # Password      this field --> come as default from AbstractBaseUser
+    # Last login    this field --> come as default from AbstractBaseUser
+    # -------
+    # add more fields:
+    # we can now add any extra_fields to this UserModel because we customize user model using inherit from AbstractBaseUser 
+    first_name      = models.CharField(max_length = 10, null = True)
+    last_name       = models.CharField(max_length = 10 ,null = True)
+    gender          = models.CharField(choices=GENDER_CHOICES, default='F', max_length=6)
+    born_date       = models.DateTimeField(null = True)  
+    country         = models.CharField(max_length=30, blank=True)
+    avatar          = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    bio             = models.TextField(max_length=500, null=True, blank=True)
+    website         = models.URLField(max_length=200, null=True, blank=True)
+    
+    objects = UserModelManger()
+    
+    USERNAME_FIELD  = 'username' 
+    REQUIRED_FIELDS = ['email']
+    
+    def get_full_name(self):
+        '''
+        Returns the first_name plus the last_name, with a space in between.
+        '''
+        # https://www.w3schools.com/python/ref_string_strip.asp
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+    
+    
+    def get_short_name(self):
+        '''
+        Returns the short name for the user.
+        '''
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        '''
+        Sends an email to this User.
+        '''
+        send_mail(subject, message, from_email, [self.email], **kwargs)
+    
+
+    def __str__(self):
+        return "{}".format(self.username) 
+    
+
+    class Meta:
+            ordering = ('first_name',)
+            verbose_name = 'UserModel'
+            verbose_name_plural = 'UsersModel'
 
 
 

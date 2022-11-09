@@ -1,10 +1,13 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+import uuid
+
 
 # https://docs.djangoproject.com/en/3.2/ref/models/#models
 
 class Category(models.Model):
+    id          = models.UUIDField(primary_key=True, editable=False,default=uuid.uuid4)
     name        = models.CharField(max_length=20,unique=True,null=True,blank=False)
     slug        = models.SlugField(max_length=25, blank=True, null=True)
     description = models.TextField(null =True,blank=True)
@@ -36,6 +39,7 @@ class Category(models.Model):
 
 
 class Post(models.Model):
+    id          = models.UUIDField(primary_key=True, editable=False,default=uuid.uuid4)
     category    = models.ForeignKey(Category,on_delete=models.CASCADE,null=True,blank=False,related_name="posts_category")
     title       = models.CharField(max_length=20,null=True,blank=False)
     slug        = models.SlugField(max_length=25, blank=True, null=True)
@@ -63,6 +67,7 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
+    id          = models.UUIDField(primary_key=True, editable=False,default=uuid.uuid4)
     post        = models.ForeignKey(Post,on_delete=models.CASCADE,null=True,blank=False,related_name="comments_post")
     text        = models.TextField(null=True,blank=False)
     comment_by  = models.CharField(max_length=100,null=True,blank=False)

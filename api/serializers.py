@@ -13,6 +13,7 @@ from rest_framework import status
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(validators=[
                                             maxLengthValidator,
                                             requiredValidator,# this notwork!
@@ -53,7 +54,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model  = Category 
         fields = ['id','name','description','date_add','date_update','url','posts_category'] 
-        read_only_fields = ('name',)
+        read_only_fields = ('name','id',)
         extra_kwargs = {
                         "name": {
                              "error_messages": { "required": "Please This field is required" },
@@ -83,12 +84,12 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
-
+    id            = serializers.UUIDField(read_only=True)
     category      = serializers.SlugRelatedField(
                             queryset = Category.objects.all(),
                             slug_field = 'name'  # to display category_id asredable  use name field  insead of id field 
                             ) 
-    title         = serializers.CharField(required=True, validators=[
+    title         = serializers.CharField(validators=[
                                                     maxLengthValidator,
                                                     # checkTitleValidator, # work ok
                                                     requiredValidator,#not work!
@@ -105,8 +106,13 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model  = Post 
-        fields = ['id','category','title','body','author','url','comments_post'] 
-        
+        fields = ['id','category','title','body','author','date_add','date_update','url','comments_post'] 
+        read_only_fields = ('name','id',)
+
+
+
+
+
 
 
 
@@ -114,7 +120,7 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
-        
+    id = serializers.UUIDField(read_only=True)    
     post          = serializers.SlugRelatedField(
                             queryset = Post.objects.all(),
                             slug_field = 'title'  # to display category_id asredable  use name field  insead of id field 

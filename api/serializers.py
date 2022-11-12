@@ -9,20 +9,102 @@ from rest_framework import status
 # https://www.django-rest-framework.org/api-guide/relations/
 
 
-# not work ..no chage has done in message!
-
-
-
-
 class UserModelSerializer(serializers.HyperlinkedModelSerializer):
+    password  = serializers.CharField(write_only=True, style={'input_type':'password'})
+    password2 = serializers.CharField(write_only=True, style={'input_type':'password'})
+    
     class Meta:
         model  = UserModel 
         fields = [
-            'username','email','is_staff','is_active','is_superuser','date_joined',
-            'first_name','last_name','gender','born_date','country','avatar','bio','website',
-            ]
+            'username','email','password','password2',
+            'first_name','last_name','gender','born_date','country','avatar','bio','website'
+        ]
+        write_only_fields = ('username',)
+        extra_kwargs = {'password': {'write_only': True}}
 
 
+    
+    def validate_username(self, value): # work ok :)
+        if value is None:
+            raise serializers.ValidationError("username field is required",status.HTTP_400_BAD_REQUEST)
+        if UserModel.objects.filter(username=value).exists() == True:
+            raise serializers.ValidationError(f" '{value}'  this username already been used. Try another username.",status.HTTP_400_BAD_REQUEST) 
+        return value
+    
+
+    def validate_email(self, value): # work ok :)
+        if value is None:
+            raise serializers.ValidationError("email field is required",status.HTTP_400_BAD_REQUEST)
+        if UserModel.objects.filter(email=value).exists() == True:
+            raise serializers.ValidationError(f" '{value}'  this email already been used. Try another email.",status.HTTP_400_BAD_REQUEST)
+        return value
+    
+
+    def validate(self, data): # work ok :)
+        if len(data['password']) < 8:
+             raise serializers.ValidationError('Password must be  more than 8 Characters.')
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError('Password and Confirm Password Should be Same!')
+        print(data)   
+        return data
+       
+    # https://www.django-rest-framework.org/api-guide/serializers/#handling-saving-related-instances-in-model-manager-classes
+    # https://www.django-rest-framework.org/api-guide/serializers/#additional-keyword-arguments
+  
+    def create(self,validated_data):
+        
+        user = UserModel( 
+                    username = validated_data['username'], 
+                    email = validated_data['email'],
+                    first_name = validated_data['first_name'],
+                    last_name = validated_data['last_name'],
+                    gender = validated_data['gender'],
+                    born_date = validated_data['born_date'],
+                    country = validated_data['country'],
+                    avatar = validated_data['avatar'],
+                    bio = validated_data['bio'],
+                    website = validated_data['website'],                                         
+        )  
+        print(user)
+        user.set_password(validated_data['password'])
+        # user.is_valid(raise_exception=True)
+        user.save()
+        return user
+
+
+
+
+
+
+
+    # def create(self, validated_data):
+    #     user = UserModel(
+    #         email=validated_data['email'],
+    #         username=validated_data['username']
+    #     )
+    #     user.set_password(validated_data['password'])
+    #     user.save()
+    #     return user    
+       
+
+    
+    # def unique_username(self, value):        
+    #     # if not re.search(r'^\w+$', value):
+    #     #     raise serializers.ValidationError('Username can only contain alphanumeric characters and the underscore.') 
+    #     if UserModel.objects.filter(username=value):
+    #         raise serializers.ValidationError('Username is already taken.')
+    #     return value # must return validated value
+
+    
+    
+    
+    
+    # def validate(self, data):
+    #     password1 = data.get('password1')
+    #     password2 = data.get('password2')
+    #     if password1 != password2:
+    #         raise serializers.ValidationError('Passwords do not match.')
+    #     return data # must return validated values
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):

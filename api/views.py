@@ -5,11 +5,12 @@ from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
-
+from rest_framework.decorators import action
 
 class UserModelviewset(viewsets.ModelViewSet):
     queryset = UserModel.objects.all()
     serializer_class = UserModelSerializer
+    lookup_field = "username"
 
 
 

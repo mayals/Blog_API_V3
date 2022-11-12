@@ -28,7 +28,7 @@ class UserModel(AbstractBaseUser,PermissionsMixin):
     ]       
     # default user fields:
     username        = models.CharField(max_length = 50, null = True, unique = True)
-    email           = models.EmailField(unique = True, null = True)
+    email           = models.EmailField(null = True)
     is_staff        = models.BooleanField(default=False)
     is_active       = models.BooleanField(default=True)
     is_superuser    = models.BooleanField(default=False)

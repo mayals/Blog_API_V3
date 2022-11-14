@@ -7,20 +7,37 @@ from rest_framework import status
 # https://www.django-rest-framework.org/tutorial/5-relationships-and-hyperlinked-apis/#hyperlinking-our-api
 # https://www.django-rest-framework.org/api-guide/validators/#uniquevalidator
 # https://www.django-rest-framework.org/api-guide/relations/
-
+# https://medium.com/django-rest/django-rest-framework-login-and-register-user-fd91cf6029d5
 
 class UserModelSerializer(serializers.HyperlinkedModelSerializer):
-    password  = serializers.CharField(write_only=True, style={'input_type':'password'})
-    password2 = serializers.CharField(write_only=True, style={'input_type':'password'})
+    username = serializers.CharField(required=True,
+                                     validators=[UniqueValidator(queryset=UserModel.objects.all())]
+    )
+    email = serializers.EmailField(
+                                    required=True,
+                                    validators=[UniqueValidator(queryset=UserModel.objects.all())]
+    )
+    password  = serializers.CharField(
+                                      required=True,
+                                      help_text='Leave empty if no change needed',
+                                      style={'input_type': 'password', 'placeholder': 'Password'}
+    )
+    password2 = serializers.CharField(
+                                      required=True,
+                                      help_text='Leave empty if no change needed',
+                                      style={'input_type': 'password', 'placeholder': 'Password2'}
+    )
+    url = serializers.HyperlinkedIdentityField(read_only=True,view_name='user-detail',lookup_field='username')
     
     class Meta:
         model  = UserModel 
         fields = [
             'username','email','password','password2',
-            'first_name','last_name','gender','born_date','country','avatar','bio','website'
+            'first_name','last_name','gender','born_date','country','avatar','bio','website','url'
         ]
-        write_only_fields = ('username',)
-        extra_kwargs = {'password': {'write_only': True}}
+        # write_only_fields = ['password','password2']
+        read_only_fields = ['url']
+        # extra_kwargs = {'password': {'write_only': True}}
 
 
     
@@ -41,16 +58,19 @@ class UserModelSerializer(serializers.HyperlinkedModelSerializer):
     
 
     def validate(self, data): # work ok :)
+        if data['password'] is None:
+            raise serializers.ValidationError("password field is required",status.HTTP_400_BAD_REQUEST)
+        if data['password2'] is None:
+            raise serializers.ValidationError("password2 field is required",status.HTTP_400_BAD_REQUEST)
         if len(data['password']) < 8:
-             raise serializers.ValidationError('Password must be  more than 8 Characters.')
+             raise serializers.ValidationError('Password must be  more than 8 Characters.',status.HTTP_400_BAD_REQUEST)
         if data['password'] != data['password2']:
-            raise serializers.ValidationError('Password and Confirm Password Should be Same!')
-        print(data)   
+            raise serializers.ValidationError('Password and Confirm Password Should be Same!',status.HTTP_400_BAD_REQUEST)  
         return data
        
     # https://www.django-rest-framework.org/api-guide/serializers/#handling-saving-related-instances-in-model-manager-classes
     # https://www.django-rest-framework.org/api-guide/serializers/#additional-keyword-arguments
-  
+    # https://github.com/LondonAppDev/course-rest-api/blob/master/src/profiles_project/profiles_api/serializers.py
     def create(self,validated_data):
         
         user = UserModel( 
@@ -67,44 +87,30 @@ class UserModelSerializer(serializers.HyperlinkedModelSerializer):
         )  
         print(user)
         user.set_password(validated_data['password'])
-        # user.is_valid(raise_exception=True)
         user.save()
+        return user
+
+
+    
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name  = validated_data.get('last_name', instance.last_name)
+        instance.gender     = validated_data.get('gender', instance.gender)
+        instance.born_date  = validated_data.get('born_date', instance.born_date)
+        instance.country    = validated_data.get('country', instance.country)
+        instance.avatar     = validated_data.get('avatar', instance.avatar)
+        instance.website    = validated_data.get('website', instance.website)
+        instance.bio        = validated_data.get('bio', instance.bio)
+        # password  = validated_data.pop(password)
+        # password2 = validated_data.pop(password2)
+        instance.save()
+        user = UserModel(instance)
         return user
 
 
 
 
-
-
-
-    # def create(self, validated_data):
-    #     user = UserModel(
-    #         email=validated_data['email'],
-    #         username=validated_data['username']
-    #     )
-    #     user.set_password(validated_data['password'])
-    #     user.save()
-    #     return user    
-       
-
-    
-    # def unique_username(self, value):        
-    #     # if not re.search(r'^\w+$', value):
-    #     #     raise serializers.ValidationError('Username can only contain alphanumeric characters and the underscore.') 
-    #     if UserModel.objects.filter(username=value):
-    #         raise serializers.ValidationError('Username is already taken.')
-    #     return value # must return validated value
-
-    
-    
-    
-    
-    # def validate(self, data):
-    #     password1 = data.get('password1')
-    #     password2 = data.get('password2')
-    #     if password1 != password2:
-    #         raise serializers.ValidationError('Passwords do not match.')
-    #     return data # must return validated values
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
